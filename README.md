@@ -3,7 +3,7 @@ Unit Test library for the Graf programming language.
 
 ## Author
 
-* **Esteban Quijano Vincenzi** - *Initial work* - [GUnit](https://github.com/GUnit)
+* **Esteban Quijano Vincenzi** - *Initial work*
 
 ## License
 
