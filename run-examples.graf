@@ -1,0 +1,16 @@
+
+repositories$ = common.composite
+{
+	examples: common.persistence.source-repository
+	{
+		domain-unique-name: "GUnit Examples",
+		target: common.io.directory("examples")
+	}
+};
+
+repositories$.examples.load();
+
+//gunit.test-suite.run(repositories$.examples)
+
+
+repositories$.examples.simple.run-command-line()

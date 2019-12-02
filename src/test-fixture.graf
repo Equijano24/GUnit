@@ -1,0 +1,195 @@
+
+box
+{
+	category: "Default Test",
+
+	setup():
+	{		
+	},
+
+	tear-down():
+	{		
+	},
+
+	test-fixture-setup():
+	{		
+	},
+
+	test-fixture-tear-down():
+	{		
+	},
+
+	self$.test(""):
+		self$.ignore(),
+
+	self$.ignore():
+		test-result.none(),
+
+	assert: box
+	{
+		are-equal(expected$ = ?, input$ = ?):
+			are-equal(expected$, input$, "Expected: <{expected$}>. Actual: <{input$}>"()),
+
+		are-equal(expected$ = ?, input$ = ?, error-message$ = text?):
+			if (equals(expected$, input$).not())>>
+				throw>> test-exception {message: "assert.are-equal failed. {error-message$}"()},
+
+		are-not-equal(expected$ = ?, input$ = ?):
+			are-not-equal(expected$, input$, "Expected any value except: <{expected$}>. Actual: <{input$}>"()),
+
+		are-not-equal(expected$ = ?, input$ = ?, error-message$ = text?):
+			if (equals(expected$, input$))>>
+				throw>> test-exception {message: "assert.are-not-equal failed. {error-message$}"()},
+
+		is-true(input$ = boolean?):
+			if (input$.not())>>
+				throw>> test-exception {message: "assert.is-true failed"()},
+
+		is-true(input$ = boolean?, error-message$ = text?):
+			if (input$.not())>>
+				throw>> test-exception {message: "assert.is-true failed. {error-message$}"()},
+
+		is-false(input$ = boolean?):
+			if (input$)>>
+				throw>> test-exception {message: "assert.is-false failed"()},
+
+		is-false(input$ = boolean?, error-message$ = text?):
+			if (input$)>>
+				throw>> test-exception {message: "assert.is-false failed. {error-message$}"()},
+
+		matches(pattern$ = &, input$ = ?):
+			matches(&pattern$, input$, "'{input$}' does not match '{pattern$.instance}'"()),
+
+		matches(pattern$ = &, input$ = ?, error-message$ = text?):
+			if (match(input$, &pattern$).not())>>
+				throw>> test-exception {message: "assert.matches failed. {error-message$}"()},
+
+		is-none: box
+		{
+			rule>> self$(error-message$ = text?): deferreval
+			{
+				rule>> this$(exp$ = common.evaluation.expressions.expression?):
+					if (equals(count(exp$), 0).not())>>
+					{
+						msg$ = !!error-message$;
+						throw>> test-exception {message: "assert.is-none failed. {msg$}"()}
+					}
+			},
+
+			rule>> this$(exp$ = common.evaluation.expressions.expression?):
+				if (equals(count(exp$), 0).not())>>
+				{
+					throw>> test-exception {message: "assert.is-none failed"}
+				}
+		},
+
+		fails: box
+		{
+			failure-check(expected$ = exception?, error-message$ = text?, exp$ = common.evaluation.expressions.expression?):
+				result$ = try {catch(expected$?): "__FAILED__"}(exp$);
+				if (equals(result$, "__FAILED__").not())>>
+				{
+					throw>> test-exception {message: "assert.fails failed. {error-message$}"()}
+				},
+
+			rule>> self$(expected$ = exception?, error-message$ = text?): deferreval
+			{
+				rule>> this$(exp$ = common.evaluation.expressions.expression?):
+					!self$.failure-check(!expected$, !error-message$, exp$)
+			},
+
+			rule>> self$(expected$ = exception?): deferreval
+			{
+				rule>> this$(exp$ = common.evaluation.expressions.expression?):
+					expected-ex$ = !expected$;
+					!self$.failure-check(expected-ex$, "Expected: '{expected-ex$}'"(), exp$)
+			},
+
+			rule>> self$(exp$ = common.evaluation.expressions.expression?):
+				self$.failure-check(exception, "Exception expected", exp$)
+		}
+	},
+
+	test-try: try
+	{
+		catch(ex$ = exception?):
+			test-result.fail(ex$)
+	},
+
+	test-result: box
+	{		
+		code: integer?,
+		error: exception?,
+		test-name: text?,
+
+		fail(ex$ = exception?):
+			test-result {code: -1, error: ex$},
+
+		success():
+			test-result {code: 0, error: {}},
+
+		none():
+			test-result {code: 1, error: {}},
+
+		self$.is-fail():
+			equals(self$.code, -1),
+
+		self$.is-success():
+			equals(self$.code, 0),
+
+		self$.is-none():
+			equals(self$.code, 1),
+
+		self$.with(test-name$ = text?):
+			test-result {code: self$.code, error: self$.error, test-name: test-name$}
+	},
+
+	self$.run():
+	{
+		foreach'(t$ = self$.test <<reversed)>>
+		{
+			self$.setup();
+
+			result$ = {
+				t$(name$ = text?)
+					<<test-try
+					<<if-none>> test-result.success()
+			};
+
+			self$.tear-down();
+
+			if (result$.is-none().not())>>
+				yield(result$.with(name$))
+		}
+	},
+
+	self$.run-command-line(): with { common.runtime.client }>>
+	{
+		total-count$ = 0;
+		passed-count$ = 0;
+
+		console.write-line("GUnit Test Run");
+		console.write-line();
+
+		self$.test-fixture-setup();
+
+		foreach'(result$ = self$.run())>>
+		{			
+			total-count$ = total-count$.plus(1);
+			if (result$.is-success())>>
+			{
+				then()::
+					passed-count$ = passed-count$.plus(1);
+					console.write-line("[√] Passed - {self$.category} - {result$.test-name}."()),
+
+				else()::
+					console.write-line("[X] Failed - {self$.category} - {result$.test-name} - {result$.error.message}."())
+			}
+		};
+
+		self$.test-fixture-tear-down();
+
+		console.write-line();
+		console.write-line("Results: {passed-count$}/{total-count$}; Failed: {total-count$.minus(passed-count$)}."())
+	}
+}

@@ -1,0 +1,8 @@
+
+box
+{
+	run(box {[i$ = ?]*}?): i$
+		/*foreach'(i$)>>
+			if'(match(i$, test-fixture?))>>
+				i$.run()*/
+}

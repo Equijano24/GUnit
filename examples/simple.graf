@@ -1,0 +1,97 @@
+
+with
+{
+	gunit
+}
+
+>>
+
+test-fixture
+{
+	override>> category: "Simple Tests",
+
+	test("Subtraction"):
+	{
+		assert.are-equal(100, 150.minus(50))
+	},
+
+	test("Subtraction Failure"):
+	{
+		assert.are-equal(101, 150.minus(50))
+	},
+
+	test("Are Not Equal"):
+	{
+		assert.are-not-equal(101, 150.minus(50))
+	},
+
+	test("Are Not Equal Failure"):
+	{
+		assert.are-not-equal(100, 150.minus(50))
+	},
+
+	test("Greater Than"):
+	{
+		assert.is-true(40.gt(20))
+	},
+
+	test("Greater Than Failure"):
+	{
+		assert.is-true(30.gt(40))
+	},
+
+	test("Less Than"):
+	{
+		assert.is-false(40.lt(20))
+	},
+
+	test("Less Than Failure"):
+	{
+		assert.is-false(30.lt(40))
+	},
+
+	test("Pattern Matching"):
+	{
+		assert.matches(integer?, 30.5.minus(0.5))
+	},
+
+	test("Pattern Matching Failure"):
+	{
+		assert.matches(integer?, 30.5.minus(0.2))
+	},
+
+	test("Is None"):
+	{
+		assert.is-none>> {}
+	},
+
+	test("Is None Failure"):
+	{
+		assert.is-none>> {1, 2, 3}
+	},
+
+	test("Is None Failure With Message"):
+	{
+		assert.is-none("No numbers were expected")>> {1, 2, 3}
+	},
+
+	test("Fails"):
+	{
+		assert.fails>> 120.over(0)
+	},
+
+	test("Fails with exception"):
+	{
+		assert.fails(arithmetic-exception)>> 120.over(0)
+	},
+
+	test("Fails Failure"):
+	{
+		assert.fails>> 120.over(1)
+	},
+
+	test("Fails Failure"):
+	{
+		assert.fails(arithmetic-exception, "Division by zero expected")>> 120.over(1)
+	}
+}
