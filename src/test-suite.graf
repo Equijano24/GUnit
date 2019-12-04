@@ -1,8 +1,42 @@
 
 box
 {
-	run(box {[i$ = ?]*}?): i$
-		/*foreach'(i$)>>
-			if'(match(i$, test-fixture?))>>
-				i$.run()*/
+	name: "Default Test Suite",
+
+	self$.run-command-line(box {labels: box-items {[label {value: tc$ = ?}?]*}?}? schema): with { common.runtime.client }>>
+	{
+		total-count$ = 0;
+		passed-count$ = 0;
+
+		console.write-line("GUnit Test Run");
+		console.write-line("Test Suite: {self$.name}"());
+		console.write-line();
+
+		foreach'(tc$)>>
+		{			
+			if (match(tc$, test-fixture?))>>				
+			{
+				tc$.test-fixture-setup();
+
+				foreach'(result$ = tc$.run())>>
+				{			
+					total-count$ = total-count$.plus(1);
+					if (result$.is-success())>>
+					{
+						then()::
+							passed-count$ = passed-count$.plus(1);
+							console.write-line("[√] Passed - {tc$.category} - {result$.test-name}."()),
+
+						else()::
+							console.write-line("[X] Failed - {tc$.category} - {result$.test-name} - {result$.error.message}."())
+					}
+				};
+
+				tc$.test-fixture-tear-down()
+			}
+		};
+
+		console.write-line();
+		console.write-line("Results: {passed-count$}/{total-count$}; Failed: {total-count$.minus(passed-count$)}."())
+	}
 }

@@ -146,12 +146,15 @@ box
 
 	self$.run():
 	{
-		foreach'(t$ = self$.test <<reversed)>>
+		f$ = foreach'(t$ = self$.test <<reversed)>>
 		{
 			self$.setup();
 
+			if (match(t$, box {extra: box {parameters: parameter-array {name$ = text?}?}?} ?schema).not())>>
+				f$.continue();
+
 			result$ = {
-				t$(name$ = text?)
+				t$(name$)
 					<<test-try
 					<<if-none>> test-result.success()
 			};
@@ -165,31 +168,6 @@ box
 
 	self$.run-command-line(): with { common.runtime.client }>>
 	{
-		total-count$ = 0;
-		passed-count$ = 0;
-
-		console.write-line("GUnit Test Run");
-		console.write-line();
-
-		self$.test-fixture-setup();
-
-		foreach'(result$ = self$.run())>>
-		{			
-			total-count$ = total-count$.plus(1);
-			if (result$.is-success())>>
-			{
-				then()::
-					passed-count$ = passed-count$.plus(1);
-					console.write-line("[√] Passed - {self$.category} - {result$.test-name}."()),
-
-				else()::
-					console.write-line("[X] Failed - {self$.category} - {result$.test-name} - {result$.error.message}."())
-			}
-		};
-
-		self$.test-fixture-tear-down();
-
-		console.write-line();
-		console.write-line("Results: {passed-count$}/{total-count$}; Failed: {total-count$.minus(passed-count$)}."())
+		test-suite.run-command-line(box {self$})
 	}
 }
