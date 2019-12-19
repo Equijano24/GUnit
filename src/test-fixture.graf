@@ -1,7 +1,7 @@
 
 box
 {
-	category: "Default Test",
+	category: text? default("Default Test"),
 
 	setup():
 	{		
